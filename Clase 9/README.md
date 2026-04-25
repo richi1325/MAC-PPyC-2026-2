@@ -33,7 +33,7 @@ cd <CARPETA_PROYECTO>
 ## 4) Construir la imagen
 
 ```bash
-docker build -t <NOMBRE_IMAGEN> .
+sudo docker build -t <NOMBRE_IMAGEN> .
 ```
 
 ## 5) Definir la IP publica como variable de entorno
@@ -47,7 +47,7 @@ echo $PUBLIC_IP
 ## 6) Ejecutar el contenedor
 
 ```bash
-docker run -e PUBLIC_IP="$PUBLIC_IP" -p <PUERTO_HOST>:8000 <NOMBRE_IMAGEN>
+sudo docker run -e PUBLIC_IP="$PUBLIC_IP" -p <PUERTO_HOST>:8000 <NOMBRE_IMAGEN>
 ```
 
 ## 7) Verificar la aplicacion
