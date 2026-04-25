@@ -3,35 +3,10 @@ import random
 import requests
 import threading
 from bs4 import BeautifulSoup
-from sqlalchemy import text, create_engine
-
-#conexion con base de datos
-user = "postgres"
-password = "supersecret"
-host = "localhost"
-port = "5432"
-database = "postgres"
-
-
-def get_connection(user, password, host, port, database):
-    return create_engine(
-        url="postgresql+psycopg2://{0}:{1}@{2}:{3}/{4}".format(
-            user, password, host, port, database
-        )
-    )
-
-def insert_price(symbol, price):
-    engine = get_connection(user, password, host, port, database)
-    with engine.connect() as connection:
-        connection.execute(
-            text(f"""
-                INSERT INTO inversiones(SYMBOL, PRICE, REGISTER_DATE)
-                VALUES ('{symbol}', {price}, NOW())"""
-            )
-        )
-        connection.commit()
+from sqlalchemy import create_engine, text
 
 semaforo = threading.Semaphore(8)
+dic = {}
 
 def obtener_precio_stock(symbol):
     with semaforo:
@@ -49,18 +24,39 @@ def obtener_precio_stock(symbol):
                 valor = soup.find("span", {"data-testid": "qsp-price"})
                 if valor:
                     precio = valor.text.strip()
-                    insert_price(symbol, precio)
+                    dic[symbol] = precio
                 else:
                     precio = "Privado"
                 break
             else:
                 continue
         print(f"La accion {symbol} cuesta: {precio}")
+        print(dic)
+
+#conexion con base de datos
+user = "postgres"
+password = "supersecret"
+host = "localhost"
+port = "5432"
+database = "postgres"
+#funcion conexion
+def get_connection(user, password, host, port, database):
+    return create_engine(
+        url="postgresql+psycopg2://{0}:{1}@{2}:{3}/{4}".format(
+            user, password, host, port, database
+        )
+    )
+
+#funcion insert
+def insertdic(symbol, price):
+    with get_connection(user, password, host, port, database).connect() as connection:
+        insertdata = connection.execute(text(f"INSERT INTO inversiones(SYMBOL, PRICE, REGISTER_DATE) VALUES ('{symbol}', {price}, NOW())"))
+        connection.commit()
+
 
 if __name__ == "__main__":
-    start = time.time()
     with open("Clase 3 y 4/data/lista_sp500.txt", "r") as f:
-        lista_symbolos = eval(f.read())
+        lista_symbolos = eval(f.read())[:4]
     threads = []
     for symbol in lista_symbolos:
         threads.append(
@@ -71,4 +67,14 @@ if __name__ == "__main__":
 
     for thread in threads:
         thread.join()
-    print(f"tiempo final: {time.time()-start} s")
+
+    thread_insert = []
+    for value in dic.items():
+        thread_insert.append(
+            threading.Thread(target=insertdic, args=value)
+        )
+    for thread in thread_insert:
+        thread.start()
+
+    for thread in thread_insert:
+        thread.join()

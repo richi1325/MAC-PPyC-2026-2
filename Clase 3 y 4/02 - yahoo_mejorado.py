@@ -20,7 +20,7 @@ def obtener_precio_stock():
         }
         
         while True:
-            time.sleep(30 * random.random())
+            time.sleep(10 * random.random())
             response = requests.get(URL, headers=headers,)
             if response.status_code == 200:
                 soup = BeautifulSoup(response.text, "html.parser")
@@ -36,7 +36,7 @@ def obtener_precio_stock():
         cola_procesos.task_done()
 
 if __name__ == "__main__":
-    with open("Clase 3/data/lista_sp500.txt", "r") as f:
+    with open("Clase 3 y 4/data/lista_sp500.txt", "r") as f:
         lista_symbolos = eval(f.read())
     threads = []
     
