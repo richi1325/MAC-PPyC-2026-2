@@ -1,0 +1,1 @@
+Ejecutar en Google Colab o cualquier entorno con GPU
